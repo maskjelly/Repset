@@ -125,7 +125,7 @@ const ChatbotLauncher = () => {
             </div>
           </div>
           
-          {!isMinimized && <ChatWidget apiKey="YOUR_API_KEY" backendUrl="YOUR_BACKEND_URL" />}
+          {!isMinimized && <ChatWidget apiKey="YOUR_API_KEY" backendUrl="https://salesbase.vercel.app/api/1" />}
         </div>
       )}
     </div>
