@@ -38,7 +38,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ apiKey, backendUrl }) => {
     } catch (error) {
       setMessages(prev => [
         ...prev,
-        { text: 'Error: Unable to send message.', sender: 'bot' },
+        { text: 'Error: Unable to send message. ' + error, sender: 'bot' },
       ]);
     } finally {
       setInput('');
