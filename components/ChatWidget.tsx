@@ -1,5 +1,5 @@
 // components/ChatWidget.tsx
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, CSSProperties } from 'react';
 
 export interface Message {
   text: string;
@@ -10,6 +10,54 @@ export interface ChatWidgetProps {
   apiKey: string;
   backendUrl: string;
 }
+
+const containerStyle: CSSProperties = {
+  position: 'fixed',
+  bottom: '20px',
+  right: '20px',
+  width: '300px',
+  height: '400px',
+  background: 'white',
+  border: '1px solid #ccc',
+  borderRadius: '8px',
+  overflow: 'hidden',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const headerStyle: CSSProperties = {
+  background: '#0070f3',
+  color: 'white',
+  padding: '10px',
+  textAlign: 'center',
+};
+
+const messagesStyle: CSSProperties = {
+  flex: 1,
+  padding: '10px',
+  overflowY: 'auto',
+};
+
+const inputContainerStyle: CSSProperties = {
+  display: 'flex',
+  borderTop: '1px solid #ccc',
+};
+
+const inputStyle: CSSProperties = {
+  flex: 1,
+  padding: '10px',
+  border: 'none',
+  outline: 'none',
+};
+
+const buttonStyle: CSSProperties = {
+  padding: '10px',
+  border: 'none',
+  background: '#0070f3',
+  color: 'white',
+  cursor: 'pointer',
+};
 
 const ChatWidget: React.FC<ChatWidgetProps> = ({ apiKey, backendUrl }) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -49,68 +97,27 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ apiKey, backendUrl }) => {
   };
 
   return (
-    <div className="chat-widget-container">
-      <div className="chat-header">ChatBot</div>
-      <div className="chat-messages">
+    <div style={containerStyle}>
+      <div style={headerStyle}>ChatBot</div>
+      <div style={messagesStyle}>
         {messages.map((msg, index) => (
           <div key={index} className={`chat-message ${msg.sender}`}>
             {msg.text}
           </div>
         ))}
       </div>
-      <div className="chat-input">
+      <div style={inputContainerStyle}>
         <input
           type="text"
           value={input}
           onChange={handleChange}
           placeholder="Type your message..."
+          style={inputStyle}
         />
-        <button onClick={sendMessage}>Send</button>
+        <button onClick={sendMessage} style={buttonStyle}>
+          Send
+        </button>
       </div>
-      <style jsx>{`
-        .chat-widget-container {
-          position: fixed;
-          bottom: 20px;
-          right: 20px;
-          width: 300px;
-          height: 400px;
-          background: white;
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-          display: flex;
-          flex-direction: column;
-        }
-        .chat-header {
-          background: #0070f3;
-          color: white;
-          padding: 10px;
-          text-align: center;
-        }
-        .chat-messages {
-          flex: 1;
-          padding: 10px;
-          overflow-y: auto;
-        }
-        .chat-input {
-          display: flex;
-          border-top: 1px solid #ccc;
-        }
-        .chat-input input {
-          flex: 1;
-          padding: 10px;
-          border: none;
-          outline: none;
-        }
-        .chat-input button {
-          padding: 10px;
-          border: none;
-          background: #0070f3;
-          color: white;
-          cursor: pointer;
-        }
-      `}</style>
     </div>
   );
 };
