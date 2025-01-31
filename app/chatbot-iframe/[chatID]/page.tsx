@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { MessageCircle, Minimize2, X } from 'lucide-react';
 
