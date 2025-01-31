@@ -30,13 +30,21 @@ export default function ChatbotIframe({
 
   return (
     <div 
-      className={`fixed bottom-4 right-4 w-80 bg-white shadow-lg rounded-xl border border-gray-200 transition-all duration-300 ease-in-out ${
-        isExpanded ? 'h-[500px]' : 'h-16'
+      className={`fixed bottom-4 right-4 w-80 transition-all duration-300 ease-in-out ${
+        isExpanded 
+          ? 'bg-white shadow-lg rounded-xl border border-gray-200 h-[500px]' 
+          : 'h-16'
       }`}
     >
       {/* Chat Header */}
       <div 
-        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-t-xl flex justify-between items-center cursor-pointer"
+        className={`
+          flex justify-between items-center cursor-pointer 
+          ${isExpanded 
+            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-t-xl' 
+            : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-xl'
+          }
+        `}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center space-x-2">
