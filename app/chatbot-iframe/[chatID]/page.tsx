@@ -1,100 +1,134 @@
-'use client';
-
 import React, { useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon, MessageCircleIcon } from 'lucide-react';
+import { MessageCircle, Minimize2, X } from 'lucide-react';
 
-type ChatbotIframeProps = {
-  params: {
-    chatID: string;
-  };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
+// Types
+interface Message {
+  text: string;
+  sender: 'user' | 'bot';
+}
 
-export default function ChatbotIframe({ 
-  params,
-}: ChatbotIframeProps) {
-  const [messages, setMessages] = useState<{ text: string; sender: 'user' | 'bot' }[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
+interface ChatWidgetProps {
+  apiKey: string;
+  backendUrl: string;
+}
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim() === '') return;
+// ChatWidget Component (for iframe content)
+const ChatWidget: React.FC<ChatWidgetProps> = ({ apiKey, backendUrl }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
 
-    // Add user message
-    const newUserMessage = { text: inputMessage, sender: 'user' as const };
-    const newBotMessage = { text: `Echo (${params.chatID}): ${inputMessage}`, sender: 'bot' as const };
+  const sendMessage = async () => {
+    if (!input.trim()) return;
     
-    setMessages(prevMessages => [...prevMessages, newUserMessage, newBotMessage]);
-    setInputMessage('');
+    setMessages(prev => [...prev, { text: input, sender: 'user' }]);
+    
+    try {
+      const res = await fetch(`${backendUrl}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ message: input }),
+      });
+      
+      const data = await res.json();
+      setMessages(prev => [...prev, { text: data.response, sender: 'bot' }]);
+    } catch (error) {
+      setMessages(prev => [
+        ...prev,
+        { text: 'Error: Unable to send message.', sender: 'bot' },
+      ]);
+    } finally {
+      setInput('');
+    }
   };
 
   return (
-    <div 
-      className={`fixed bottom-4 right-4 w-80 transition-all duration-300 ease-in-out ${
-        isExpanded 
-          ? 'bg-white shadow-lg rounded-xl border border-gray-200 h-[500px]' 
-          : 'h-16'
-      }`}
-    >
-      {/* Chat Header */}
-      <div 
-        className={`
-          flex justify-between items-center cursor-pointer 
-          ${isExpanded 
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-t-xl' 
-            : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-xl'
-          }
-        `}
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center space-x-2">
-          <MessageCircleIcon className="w-6 h-6" />
-          <h3 className="font-bold">Chat Support</h3>
-        </div>
-        {isExpanded ? (
-          <ChevronDownIcon className="w-6 h-6" />
-        ) : (
-          <ChevronUpIcon className="w-6 h-6" />
-        )}
+    <div className="flex flex-col h-full bg-transparent">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`max-w-[80%] p-3 rounded-lg ${
+              msg.sender === 'user'
+                ? 'ml-auto bg-blue-500 text-white rounded-br-none'
+                : 'bg-gray-100 text-gray-800 rounded-bl-none'
+            }`}
+          >
+            {msg.text}
+          </div>
+        ))}
       </div>
+      
+      <div className="border-t border-gray-200 p-4 bg-white">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="Type your message..."
+            className="flex-1 px-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={sendMessage}
+            className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-      {/* Messages Container - Only show when expanded */}
-      {isExpanded && (
-        <>
-          <div className="flex-grow overflow-y-auto p-3 space-y-2 h-[calc(100%-160px)]">
-            {messages.map((message, index) => (
-              <div 
-                key={index} 
-                className={`p-2 rounded-lg max-w-[80%] ${
-                  message.sender === 'user' 
-                    ? 'bg-blue-500 text-white self-end ml-auto' 
-                    : 'bg-gray-200 text-black self-start mr-auto'
-                }`}
+// Launcher Component (for websites embedding the iframe)
+const ChatbotLauncher = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  return (
+    <div className="fixed bottom-5 right-5 z-50">
+      {!isOpen ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex items-center justify-center w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-colors"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      ) : (
+        <div
+          className="bg-transparent rounded-lg shadow-lg overflow-hidden"
+          style={{
+            width: '350px',
+            height: isMinimized ? '60px' : '500px',
+            transition: 'height 0.3s ease-in-out',
+          }}
+        >
+          <div className="flex items-center justify-between px-4 py-3 bg-blue-500 text-white">
+            <h3 className="font-medium">Chat Support</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="p-1 hover:bg-blue-600 rounded"
               >
-                {message.text}
-              </div>
-            ))}
+                <Minimize2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 hover:bg-blue-600 rounded"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-
-          {/* Input Area */}
-          <div className="p-3 border-t flex">
-            <input 
-              type="text" 
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="flex-grow p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Type a message..."
-            />
-            <button 
-              onClick={handleSendMessage}
-              className="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600 transition-colors"
-            >
-              Send
-            </button>
-          </div>
-        </>
+          
+          {!isMinimized && <ChatWidget apiKey="YOUR_API_KEY" backendUrl="YOUR_BACKEND_URL" />}
+        </div>
       )}
     </div>
   );
-}
+};
+
+export default ChatbotLauncher;
