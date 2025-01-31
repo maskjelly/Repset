@@ -1,17 +1,24 @@
 'use client';
-
 import React, { useState } from 'react';
 
-export default function ChatbotIframe({ params }: { params: { chatID: string } }) {
+type ChatbotIframeProps = {
+  params: {
+    chatID: string;
+  };
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
+
+export default function ChatbotIframe({ 
+  params,
+}: ChatbotIframeProps) {
   const [messages, setMessages] = useState<{ text: string; sender: 'user' | 'bot' }[]>([]);
   const [inputMessage, setInputMessage] = useState('');
 
   const handleSendMessage = () => {
     if (inputMessage.trim() === '') return;
-
     // Add user message
     const newUserMessage = { text: inputMessage, sender: 'user' as const };
-    const newBotMessage = { text: inputMessage, sender: 'bot' as const };
+    const newBotMessage = { text: `Echo (${params.chatID}): ${inputMessage}`, sender: 'bot' as const };
     
     setMessages(prevMessages => [...prevMessages, newUserMessage, newBotMessage]);
     setInputMessage('');
@@ -23,7 +30,6 @@ export default function ChatbotIframe({ params }: { params: { chatID: string } }
       <div className="bg-blue-500 text-white p-3 flex justify-between items-center">
         <h3 className="font-bold">Chat Widget (ID: {params.chatID})</h3>
       </div>
-
       {/* Messages Container */}
       <div className="flex-grow overflow-y-auto p-3 space-y-2">
         {messages.map((message, index) => (
@@ -39,7 +45,6 @@ export default function ChatbotIframe({ params }: { params: { chatID: string } }
           </div>
         ))}
       </div>
-
       {/* Input Area */}
       <div className="p-3 border-t flex">
         <input 
