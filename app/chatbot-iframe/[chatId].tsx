@@ -1,6 +1,6 @@
 // pages/chatbot-iframe/[chatId].tsx
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 interface ChatMessage {
   text: string;
