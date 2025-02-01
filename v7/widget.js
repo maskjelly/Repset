@@ -1,28 +1,32 @@
-(function() {
-  const script = document.currentScript || [].slice.call(document.getElementsByTagName('script')).pop();
-  
+(function () {
+  const script =
+    document.currentScript ||
+    [].slice.call(document.getElementsByTagName("script")).pop();
+
   // Configuration
   const config = {
-    apiKey: script.getAttribute('data-api-key') || '',
-    position: script.getAttribute('data-position') || 'bottom-right',
-    title: script.getAttribute('data-title') || 'Chatbase AI',
-    fontFamily: script.getAttribute('data-font-family') || "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    apiKey: script.getAttribute("data-api-key") || "",
+    position: script.getAttribute("data-position") || "bottom-right",
+    title: script.getAttribute("data-title") || "UserBase AI",
+    fontFamily:
+      script.getAttribute("data-font-family") ||
+      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   };
 
   // Create widget container with Shadow DOM for style isolation
-  const widget = document.createElement('div');
-  widget.id = 'chatbot-widget';
-  const shadow = widget.attachShadow({ mode: 'open' });
+  const widget = document.createElement("div");
+  widget.id = "chatbot-widget";
+  const shadow = widget.attachShadow({ mode: "open" });
 
   // Styles
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
     .chat-container {
       position: fixed;
-      ${config.position.includes('bottom') ? 'bottom: 20px' : 'top: 20px'};
-      ${config.position.includes('right') ? 'right: 20px' : 'left: 20px'};
+      ${config.position.includes("bottom") ? "bottom: 20px" : "top: 20px"};
+      ${config.position.includes("right") ? "right: 20px" : "left: 20px"};
       width: 350px;
       background: #000000;
       border-radius: 12px;
@@ -185,9 +189,9 @@
         <input type="text" id="chat-input" placeholder="Type your message..." />
         <button id="send-button">Send</button>
       </div>
+      <p>made by maskjelly aka whiteye</p>
     </div>
   `;
-
   // Attach elements
   shadow.appendChild(style);
   shadow.innerHTML += chatHTML;
@@ -196,15 +200,15 @@
   document.body.appendChild(widget);
 
   // Chat functionality
-  const chatContainer = shadow.querySelector('.chat-container');
-  const chatBody = shadow.getElementById('chat-body');
-  const chatInput = shadow.getElementById('chat-input');
-  const sendButton = shadow.getElementById('send-button');
-  const chatToggle = shadow.querySelector('.chat-toggle');
+  const chatContainer = shadow.querySelector(".chat-container");
+  const chatBody = shadow.getElementById("chat-body");
+  const chatInput = shadow.getElementById("chat-input");
+  const sendButton = shadow.getElementById("send-button");
+  const chatToggle = shadow.querySelector(".chat-toggle");
 
   function addMessage(message, isUser = true) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${isUser ? "user-message" : "bot-message"}`;
     messageDiv.textContent = message;
     chatBody.appendChild(messageDiv);
     chatBody.scrollTop = chatBody.scrollHeight;
@@ -215,35 +219,41 @@
     if (!userMessage) return;
 
     addMessage(userMessage, true);
-    chatInput.value = '';
+    chatInput.value = "";
 
     try {
-      const response = await fetch('https://mustermask-gisr.vercel.app/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      });
+      const response = await fetch(
+        "https://mustermask-gisr.vercel.app/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: userMessage }),
+        }
+      );
 
       const data = await response.json();
       addMessage(data.response, false);
     } catch (error) {
-      addMessage('Sorry, there was an error connecting to the chat service.', false);
+      addMessage(
+        "Sorry, there was an error connecting to the chat service." + error,
+        false
+      );
     }
   }
 
   // Event listeners
-  sendButton.addEventListener('click', handleUserInput);
-  chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleUserInput();
+  sendButton.addEventListener("click", handleUserInput);
+  chatInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") handleUserInput();
   });
 
   let isOpen = true;
-  chatToggle.addEventListener('click', () => {
+  chatToggle.addEventListener("click", () => {
     isOpen = !isOpen;
-    chatBody.style.display = isOpen ? 'flex' : 'none';
-    chatContainer.style.height = isOpen ? 'auto' : '60px';
-    chatToggle.textContent = isOpen ? '−' : '+';
+    chatBody.style.display = isOpen ? "flex" : "none";
+    chatContainer.style.height = isOpen ? "auto" : "60px";
+    chatToggle.textContent = isOpen ? "−" : "+";
   });
 })();
