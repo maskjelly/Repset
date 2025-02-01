@@ -13,6 +13,9 @@
       "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   };
 
+  // Generate a unique userId for the session
+  const userId = `user_${Math.random().toString(36).substring(2, 9)}`;
+
   // Create widget container with Shadow DOM for style isolation
   const widget = document.createElement("div");
   widget.id = "chatbot-widget";
@@ -176,48 +179,48 @@
       animation: fadeIn 0.2s ease;
     }
 
-
     .footer {
-  padding: 8px 16px;
-  background: #000000;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
+      padding: 8px 16px;
+      background: #000000;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-.attribution {
-  display: block;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-}
+    .attribution {
+      display: block;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+    }
 
-.attribution a {
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
+    .attribution a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
 
-.attribution a:hover {
-  color: #ffffff;
-}
+    .attribution a:hover {
+      color: #ffffff;
+    }
   `;
 
   // Chat HTML
   const chatHTML = `
-  <div class="chat-container">
-    <div class="chat-header">
-      <h3>${config.title}</h3>
-      <button class="chat-toggle">−</button>
+    <div class="chat-container">
+      <div class="chat-header">
+        <h3>${config.title}</h3>
+        <button class="chat-toggle">−</button>
+      </div>
+      <div class="chat-body" id="chat-body"></div>
+      <div class="input-container">
+        <input type="text" id="chat-input" placeholder="Type your message..." />
+        <button id="send-button">Send</button>
+      </div>
+      <div class="footer">
+        <small class="attribution">made by maskjelly aka. whiteye • <a href="https://x.com/LiquidZooo" target="_blank">Twitter</a></small>
+      </div>
     </div>
-    <div class="chat-body" id="chat-body"></div>
-    <div class="input-container">
-      <input type="text" id="chat-input" placeholder="Type your message..." />
-      <button id="send-button">Send</button>
-    </div>
-    <div class="footer">
-      <small class="attribution">made by maskjelly aka. whiteye • <a href="https://x.com/LiquidZooo" target="_blank">Twitter</a></small>
-    </div>
-  </div>
-`;
+  `;
+
   // Attach elements
   shadow.appendChild(style);
   shadow.innerHTML += chatHTML;
@@ -255,7 +258,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ message: userMessage }),
+          body: JSON.stringify({ message: userMessage, userId }),
         }
       );
 
@@ -263,7 +266,7 @@
       addMessage(data.response, false);
     } catch (error) {
       addMessage(
-        "Sorry, there was an error connecting to the chat service." + error,
+        "Sorry, there was an error connecting to the chat service. " + error,
         false
       );
     }
