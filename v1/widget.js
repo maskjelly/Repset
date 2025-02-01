@@ -1,288 +1,331 @@
+// UPDATE
 (function () {
-  const script =
-    document.currentScript ||
-    [].slice.call(document.getElementsByTagName("script")).pop();
+  const script = document.currentScript || [].slice.call(document.getElementsByTagName("script")).pop();
 
   // Configuration
   const config = {
-    apiKey: script.getAttribute("data-api-key") || "",
     position: script.getAttribute("data-position") || "bottom-right",
-    title: script.getAttribute("data-title") || "UserBase AI",
-    fontFamily:
-      script.getAttribute("data-font-family") ||
-      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    title: script.getAttribute("data-title") || "MUSTARD AI",
+    accentColor: script.getAttribute("data-accent-color") || "#4f46e5",
+    fontFamily: script.getAttribute("data-font-family") || "Inter, sans-serif",
   };
 
-  // Generate a unique userId for the session
-  const userId = `user_${Math.random().toString(36).substring(2, 9)}`;
+  // Generate persistent user ID
+  let userId = localStorage.getItem('mustardUserId');
+  if (!userId) {
+    userId = `user_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('mustardUserId', userId);
+  }
 
-  // Create widget container with Shadow DOM for style isolation
+  // Load conversation history
+  let history = JSON.parse(localStorage.getItem(`mustardHistory_${userId}`) || '[]');
+
+  // Create widget container
   const widget = document.createElement("div");
-  widget.id = "chatbot-widget";
+  widget.id = "mustard-chatbot";
   const shadow = widget.attachShadow({ mode: "open" });
 
   // Styles
   const style = document.createElement("style");
   style.textContent = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    
+    :host {
+      --accent: ${config.accentColor};
+      --font: ${config.fontFamily};
+    }
 
-    .chat-container {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      font-family: var(--font);
+    }
+
+    .container {
       position: fixed;
       ${config.position.includes("bottom") ? "bottom: 20px" : "top: 20px"};
       ${config.position.includes("right") ? "right: 20px" : "left: 20px"};
-      width: 350px;
-      background: #000000;
-      border-radius: 12px;
-      font-family: ${config.fontFamily};
-      z-index: 9999;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+      transform: translateY(${config.position.includes("bottom") ? "20px" : "-20px"});
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .chat-header {
-      background: #000000;
-      color: #ffffff;
-      padding: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .chat-header h3 {
-      margin: 0;
-      font-weight: 500;
-      font-size: 16px;
-    }
-
-    .chat-toggle {
-      background: none;
-      border: none;
-      color: #ffffff;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      opacity: 0.8;
-      transition: opacity 0.2s ease;
-    }
-
-    .chat-toggle:hover {
+    .container.visible {
+      transform: translateY(0);
       opacity: 1;
     }
 
-    .chat-body {
-      height: 400px;
+    .header {
+      padding: 20px;
+      background: var(--accent);
+      color: white;
+      border-radius: 16px 16px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .title {
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .close-btn:hover {
+      opacity: 0.8;
+    }
+
+    .messages {
+      height: 500px;
+      padding: 20px;
       overflow-y: auto;
-      padding: 16px;
+      background: #f8fafc;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      background: #000000;
     }
 
     .message {
-      max-width: 85%;
-      padding: 12px 16px;
-      border-radius: 12px;
+      max-width: 80%;
+      padding: 14px 18px;
+      border-radius: 16px;
       font-size: 14px;
       line-height: 1.5;
-      transition: all 0.2s ease;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: messageIn 0.3s ease forwards;
     }
 
-    .user-message {
-      background: #ffffff;
-      color: #000000;
+    .user {
+      background: var(--accent);
+      color: white;
       align-self: flex-end;
+      border-radius: 16px 16px 4px 16px;
     }
 
-    .bot-message {
-      background: #1a1a1a;
-      color: #ffffff;
+    .bot {
+      background: white;
+      color: #0f172a;
       align-self: flex-start;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-radius: 16px 16px 16px 4px;
+      position: relative;
     }
+
+    .typing {
+      display: inline-block;
+      padding: 14px 18px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-radius: 16px 16px 16px 4px;
+    }
+
+    .typing-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #ddd;
+      border-radius: 50%;
+      margin-right: 4px;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
     .input-container {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #f1f5f9;
       display: flex;
-      padding: 16px;
-      background: #000000;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      gap: 8px;
+      gap: 12px;
     }
 
     input {
       flex: 1;
       padding: 12px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
       font-size: 14px;
-      background: #1a1a1a;
-      color: #ffffff;
-      transition: all 0.2s ease;
-    }
-
-    input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+      transition: all 0.2s;
     }
 
     input:focus {
       outline: none;
-      border-color: rgba(255, 255, 255, 0.2);
-      background: #262626;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px ${config.accentColor}20;
     }
 
     button {
-      background: #ffffff;
-      color: #000000;
+      background: var(--accent);
+      color: white;
       border: none;
       padding: 12px 20px;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
       font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s ease;
+      transition: opacity 0.2s;
     }
 
     button:hover {
-      background: rgba(255, 255, 255, 0.9);
+      opacity: 0.9;
     }
 
-    .chat-body::-webkit-scrollbar {
-      width: 6px;
+    @keyframes messageIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    .chat-body::-webkit-scrollbar-track {
-      background: #000000;
-    }
-
-    .chat-body::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 3px;
-    }
-
-    .chat-body::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message {
-      animation: fadeIn 0.2s ease;
-    }
-
-    .footer {
-      padding: 8px 16px;
-      background: #000000;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .attribution {
-      display: block;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 12px;
-    }
-
-    .attribution a {
-      color: rgba(255, 255, 255, 0.7);
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .attribution a:hover {
-      color: #ffffff;
+    @keyframes typing {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); background: #94a3b8; }
     }
   `;
 
   // Chat HTML
   const chatHTML = `
-    <div class="chat-container">
-      <div class="chat-header">
-        <h3>${config.title}</h3>
-        <button class="chat-toggle">−</button>
+    <div class="container">
+      <div class="header">
+        <div class="title">${config.title}</div>
+        <button class="close-btn">×</button>
       </div>
-      <div class="chat-body" id="chat-body"></div>
+      <div class="messages"></div>
       <div class="input-container">
-        <input type="text" id="chat-input" placeholder="Type your message..." />
-        <button id="send-button">Send</button>
-      </div>
-      <div class="footer">
-        <small class="attribution">made by maskjelly aka. whiteye • <a href="https://x.com/LiquidZooo" target="_blank">Twitter</a></small>
+        <input type="text" placeholder="Ask me anything..." />
+        <button>Send</button>
       </div>
     </div>
   `;
 
-  // Attach elements
+  // Initialize
   shadow.appendChild(style);
   shadow.innerHTML += chatHTML;
-
-  // Add to DOM
   document.body.appendChild(widget);
 
-  // Chat functionality
-  const chatContainer = shadow.querySelector(".chat-container");
-  const chatBody = shadow.getElementById("chat-body");
-  const chatInput = shadow.getElementById("chat-input");
-  const sendButton = shadow.getElementById("send-button");
-  const chatToggle = shadow.querySelector(".chat-toggle");
+  // Elements
+  const container = shadow.querySelector('.container');
+  const messagesEl = shadow.querySelector('.messages');
+  const input = shadow.querySelector('input');
+  const sendBtn = shadow.querySelector('button');
+  const closeBtn = shadow.querySelector('.close-btn');
 
-  function addMessage(message, isUser = true) {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = `message ${isUser ? "user-message" : "bot-message"}`;
-    messageDiv.textContent = message;
-    chatBody.appendChild(messageDiv);
-    chatBody.scrollTop = chatBody.scrollHeight;
+  // Show container with animation
+  setTimeout(() => container.classList.add('visible'), 100);
+
+  // Load history
+  history.forEach(entry => {
+    addMessage(entry.content, entry.role === 'user');
+  });
+
+  // Add message function
+  function addMessage(content, isUser, isStreaming = false) {
+    const message = document.createElement('div');
+    message.className = `message ${isUser ? 'user' : 'bot'}`;
+    
+    if (isStreaming) {
+      message.innerHTML = `
+        <div class="typing">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      `;
+    } else {
+      message.textContent = content;
+    }
+
+    messagesEl.appendChild(message);
+    messagesEl.scrollTo(0, messagesEl.scrollHeight);
   }
 
-  async function handleUserInput() {
-    const userMessage = chatInput.value.trim();
-    if (!userMessage) return;
+  // Handle messages
+  async function handleSend() {
+    const content = input.value.trim();
+    if (!content) return;
 
-    addMessage(userMessage, true);
-    chatInput.value = "";
+    // Add user message
+    addMessage(content, true);
+    history.push({ role: 'user', content });
+    input.value = '';
 
+    // Add temporary bot message
+    const botMessage = document.createElement('div');
+    botMessage.className = 'message bot';
+    messagesEl.appendChild(botMessage);
+    
+    // Streaming response
     try {
-      const response = await fetch(
-        "https://mustermask-gisr.vercel.app/api/chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ message: userMessage, userId }),
-        }
-      );
+      const response = await fetch('https://mustermask-gisr.vercel.app/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, history }),
+      });
 
-      const data = await response.json();
-      addMessage(data.response, false);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let responseText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        responseText += chunk;
+        
+        // Animate streaming text
+        botMessage.textContent = responseText;
+        messagesEl.scrollTo(0, messagesEl.scrollHeight);
+        
+        // Smooth cursor effect
+        if (!botMessage.querySelector('.cursor')) {
+          const cursor = document.createElement('span');
+          cursor.className = 'cursor';
+          cursor.innerHTML = '▎';
+          botMessage.appendChild(cursor);
+        }
+      }
+
+      // Remove cursor and save to history
+      botMessage.querySelector('.cursor')?.remove();
+      history.push({ role: 'assistant', content: responseText });
+      localStorage.setItem(`mustardHistory_${userId}`, JSON.stringify(history));
+
     } catch (error) {
-      addMessage(
-        "Sorry, there was an error connecting to the chat service. " + error,
-        false
-      );
+      botMessage.textContent = "Sorry, I'm having trouble connecting. Please try again.";
+      botMessage.style.color = '#ef4444';
     }
   }
 
   // Event listeners
-  sendButton.addEventListener("click", handleUserInput);
-  chatInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") handleUserInput();
-  });
+  sendBtn.addEventListener('click', handleSend);
+  input.addEventListener('keypress', e => e.key === 'Enter' && handleSend());
+  closeBtn.addEventListener('click', () => container.remove());
 
-  let isOpen = true;
-  chatToggle.addEventListener("click", () => {
-    isOpen = !isOpen;
-    chatBody.style.display = isOpen ? "flex" : "none";
-    chatContainer.style.height = isOpen ? "auto" : "60px";
-    chatToggle.textContent = isOpen ? "−" : "+";
-  });
+  // Initial greeting
+  if (history.length === 0) {
+    setTimeout(() => {
+      addMessage("Hi! I'm MUSTARD, your AI assistant. How can I help you today?", false);
+      history.push({ 
+        role: 'assistant', 
+        content: "Hi! I'm MUSTARD, your AI assistant. How can I help you today?"
+      });
+      localStorage.setItem(`mustardHistory_${userId}`, JSON.stringify(history));
+    }, 1000);
+  }
 })();
