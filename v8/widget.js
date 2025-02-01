@@ -179,19 +179,22 @@
 
   // Chat HTML
   const chatHTML = `
-    <div class="chat-container">
-      <div class="chat-header">
-        <h3>${config.title}</h3>
-        <button class="chat-toggle">−</button>
-      </div>
-      <div class="chat-body" id="chat-body"></div>
-      <div class="input-container">
-        <input type="text" id="chat-input" placeholder="Type your message..." />
-        <button id="send-button">Send</button>
-      </div>
-      <p>made by maskjelly aka whiteye</p>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h3>${config.title}</h3>
+      <button class="chat-toggle">−</button>
     </div>
-  `;
+    <div class="chat-body" id="chat-body"></div>
+    <div class="input-container">
+      <input type="text" id="chat-input" placeholder="Type your message..." />
+      <button id="send-button">Send</button>
+    </div>
+    <div class="footer">
+      <p>made by maskjelly aka whiteye</p>
+      <p class="twitter-link">Follow me on <a href="https://x.com/LiquidZooo" target="_blank">Twitter</a></p>
+    </div>
+  </div>
+`;
   // Attach elements
   shadow.appendChild(style);
   shadow.innerHTML += chatHTML;
