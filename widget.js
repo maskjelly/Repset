@@ -25,7 +25,7 @@
       ${config.position.includes('bottom') ? 'bottom: 20px' : 'top: 20px'};
       ${config.position.includes('right') ? 'right: 20px' : 'left: 20px'};
       width: 350px;
-      background: #FFFFFF;
+      background:rgb(0, 0, 0);
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       border-radius: 20px;
       font-family: ${config.fontFamily};
@@ -67,7 +67,7 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
-      background: #F8F9FA;
+      background:rgb(223, 159, 91);
     }
 
     .message {
@@ -88,7 +88,7 @@
     }
 
     .bot-message {
-      background: #FFFFFF;
+      background:rgb(0, 0, 0);
       align-self: flex-start;
       border-bottom-left-radius: 4px;
     }
@@ -96,7 +96,7 @@
     .input-container {
       display: flex;
       padding: 15px;
-      background: #FFFFFF;
+      background:rgb(255, 255, 255);
       border-top: 1px solid #E9ECEF;
     }
 
