@@ -5,9 +5,8 @@
   const config = {
     apiKey: script.getAttribute('data-api-key') || '',
     position: script.getAttribute('data-position') || 'bottom-right',
-    title: script.getAttribute('data-title') || 'Chat Support',
-    accentColor: script.getAttribute('data-accent-color') || '#4A90E2',
-    fontFamily: script.getAttribute('data-font-family') || "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+    title: script.getAttribute('data-title') || 'Chatbase AI',
+    fontFamily: script.getAttribute('data-font-family') || "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
   };
 
   // Create widget container with Shadow DOM for style isolation
@@ -25,110 +24,126 @@
       ${config.position.includes('bottom') ? 'bottom: 20px' : 'top: 20px'};
       ${config.position.includes('right') ? 'right: 20px' : 'left: 20px'};
       width: 350px;
-      background:rgb(0, 0, 0);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      border-radius: 20px;
+      background: #000000;
+      border-radius: 12px;
       font-family: ${config.fontFamily};
       z-index: 9999;
       overflow: hidden;
       transition: all 0.3s ease;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
     }
 
     .chat-header {
-      background: ${config.accentColor};
-      color: white;
-      padding: 20px;
-      border-radius: 20px 20px 0 0;
+      background: #000000;
+      color: #ffffff;
+      padding: 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .chat-header h3 {
       margin: 0;
-      font-weight: 600;
-      font-size: 18px;
+      font-weight: 500;
+      font-size: 16px;
     }
 
     .chat-toggle {
       background: none;
       border: none;
-      color: white;
-      font-size: 24px;
+      color: #ffffff;
+      font-size: 20px;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+
+    .chat-toggle:hover {
+      opacity: 1;
     }
 
     .chat-body {
       height: 400px;
       overflow-y: auto;
-      padding: 20px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      background:rgb(223, 159, 91);
+      gap: 12px;
+      background: #000000;
     }
 
     .message {
-      max-width: 80%;
+      max-width: 85%;
       padding: 12px 16px;
-      border-radius: 18px;
+      border-radius: 12px;
       font-size: 14px;
-      line-height: 1.4;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
+      line-height: 1.5;
+      transition: all 0.2s ease;
     }
 
     .user-message {
-      background: ${config.accentColor};
-      color: white;
+      background: #ffffff;
+      color: #000000;
       align-self: flex-end;
-      border-bottom-right-radius: 4px;
     }
 
     .bot-message {
-      background:rgb(0, 0, 0);
+      background: #1a1a1a;
+      color: #ffffff;
       align-self: flex-start;
-      border-bottom-left-radius: 4px;
     }
 
     .input-container {
       display: flex;
-      padding: 15px;
-      background:rgb(255, 255, 255);
-      border-top: 1px solid #E9ECEF;
+      padding: 16px;
+      background: #000000;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      gap: 8px;
     }
 
     input {
       flex: 1;
-      padding: 12px 15px;
-      border: 1px solid #E9ECEF;
-      border-radius: 25px;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
       font-size: 14px;
-      transition: all 0.3s ease;
+      background: #1a1a1a;
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
     }
 
     input:focus {
       outline: none;
-      border-color: ${config.accentColor};
-      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: #262626;
     }
 
     button {
-      background: ${config.accentColor};
-      color: white;
+      background: #ffffff;
+      color: #000000;
       border: none;
       padding: 12px 20px;
-      border-radius: 25px;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 500;
-      transition: all 0.3s ease;
-      margin-left: 10px;
+      font-size: 14px;
+      transition: all 0.2s ease;
     }
 
     button:hover {
-      background: ${lightenDarkenColor(config.accentColor, -20)};
+      background: rgba(255, 255, 255, 0.9);
     }
 
     .chat-body::-webkit-scrollbar {
@@ -136,21 +151,25 @@
     }
 
     .chat-body::-webkit-scrollbar-track {
-      background: #F1F3F5;
+      background: #000000;
     }
 
     .chat-body::-webkit-scrollbar-thumb {
-      background: #CED4DA;
+      background: rgba(255, 255, 255, 0.2);
       border-radius: 3px;
     }
 
+    .chat-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     .message {
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.2s ease;
     }
   `;
 
@@ -228,24 +247,4 @@
     chatContainer.style.height = isOpen ? 'auto' : '60px';
     chatToggle.textContent = isOpen ? '−' : '+';
   });
-
-  // Utility function to lighten or darken a color
-  function lightenDarkenColor(col, amt) {
-    let usePound = false;
-    if (col[0] == "#") {
-      col = col.slice(1);
-      usePound = true;
-    }
-    let num = parseInt(col,16);
-    let r = (num >> 16) + amt;
-    let b = ((num >> 8) & 0x00FF) + amt;
-    let g = (num & 0x0000FF) + amt;
-    if (r > 255) r = 255;
-    else if  (r < 0) r = 0;
-    if (b > 255) b = 255;
-    else if  (b < 0) b = 0;
-    if (g > 255) g = 255;
-    else if (g < 0) g = 0;
-    return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
-  }
 })();
