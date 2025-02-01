@@ -175,6 +175,30 @@
     .message {
       animation: fadeIn 0.2s ease;
     }
+
+
+    .footer {
+  padding: 8px 16px;
+  background: #000000;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attribution {
+  display: block;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+.attribution a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.attribution a:hover {
+  color: #ffffff;
+}
   `;
 
   // Chat HTML
@@ -190,8 +214,7 @@
       <button id="send-button">Send</button>
     </div>
     <div class="footer">
-      <p>made by maskjelly aka whiteye</p>
-      <p class="twitter-link">Follow me on <a href="https://x.com/LiquidZooo" target="_blank">Twitter</a></p>
+      <small class="attribution">made by maskjelly aka. whiteye • <a href="https://x.com/LiquidZooo" target="_blank">Twitter</a></small>
     </div>
   </div>
 `;
