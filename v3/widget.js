@@ -218,7 +218,7 @@
     chatInput.value = '';
 
     try {
-      const response = await fetch('http://mastermuster.vercel.app/api/', {
+      const response = await fetch('https://mustermask-gisr.vercel.app/api/chat/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
