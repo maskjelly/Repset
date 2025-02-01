@@ -1,3 +1,9 @@
+import Groq from "groq-sdk";
+
+const groq = new Groq({
+  apiKey: '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' // Replace with your actual Groq API key
+});
+
 (function() {
     const script = document.currentScript || [].slice.call(document.getElementsByTagName('script')).pop();
     
@@ -218,17 +224,36 @@
       chatInput.value = '';
   
       try {
-        const response = await fetch('https://salesbase.vercel.app/api/1', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${config.apiKey}`
-          },
-          body: JSON.stringify({ message: userMessage })
+        const stream = await groq.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful sales assistant."
+            },
+            {
+              role: "user",
+              content: userMessage
+            }
+          ],
+          model: "llama-3.3-70b-versatile",
+          temperature: 0.5,
+          max_completion_tokens: 1024,
+          top_p: 1,
+          stop: null,
+          stream: true
         });
   
-        const data = await response.json();
-        addMessage(data.reply, false);
+        let botMessage = '';
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot-message';
+        chatBody.appendChild(messageDiv);
+  
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          botMessage += content;
+          messageDiv.textContent = botMessage;
+          chatBody.scrollTop = chatBody.scrollHeight;
+        }
       } catch (error) {
         addMessage('Sorry, there was an error connecting to the chat service.', false);
       }
@@ -248,3 +273,5 @@
       chatToggle.textContent = isOpen ? '−' : '+';
     });
   })();
+
+//   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
